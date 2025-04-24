@@ -64,14 +64,18 @@ for tracer in ['PSMA','FDG']: #loop through the tracers for each case
             output_folder=psma_folder
         elif tracer=='FDG':
             output_folder=fdg_folder
-        sitk.WriteImage(pt_rescaled,join(output_folder,'imagesTr',case+'_0000.nii.gz')) #write rescaled PET image to training image folder as channel 0
-        sitk.WriteImage(ct_resampled,join(output_folder,'imagesTr',case+'_0001.nii.gz')) #write CT matched to PET resolution image to training image folder as channel 1
+        #sitk.WriteImage(pt_rescaled,join(output	_folder,'imagesTr',case+'_0000.nii.gz')) #write rescaled PET image to training image folder as channel 0
+        sitk.WriteImage(pt_rescaled,join(output_folder,'imagesTr',case.replace('.nii.gz','_0000.nii.gz'))) #write rescaled PET image to training image folder as channel 0
+        #sitk.WriteImage(ct_resampled,join(output_folder,'imagesTr',case+'_0001.nii.gz')) #write CT matched to PET resolution image to training image folder as channel 1
+        sitk.WriteImage(ct_resampled,join(output_folder,'imagesTr',case.replace('.nii.gz','_0001.nii.gz'))) #write CT matched to PET resolution image to training image folder as channel 1
         sitk.WriteImage(ttb_normal_label,join(output_folder,'labelsTr',case+'.nii.gz')) #write output label (background/tumour/normal 0/1/2) to training label folder
 
         sitk.WriteImage(normal_label,join(normal_dir,case))
         sitk.WriteImage(pt_rescaled,join(pet_rescaled_dir,case))
         sitk.WriteImage(ct_resampled,join(ct_resampled_dir,case))
-
+#LM 24-04-25: Commented 67-68 due to double appendage of .nii.gz, cases resulted in "casenumber_0001.nii.gz_0001.nii.gz" and unable to identify labels with images in nnuNet plan and preprocess command
+#comment below for testing
+"""
         #plot MIP image of ttb & normal regions for review
         mip_fname=join(mip_dir,case.replace('.nii.gz','.jpg'))
         gtrc_utils.plot_mip(pt_rescaled,ttb_label,normal_label,mip_fname,title=case,clim_max=2.5,show=False)
@@ -80,7 +84,7 @@ for tracer in ['PSMA','FDG']: #loop through the tracers for each case
         threshold_array=(pt_rescaled_array>=1.0).astype('int8')
         subregion_im=gtrc_utils.create_subregion_labels(pt_rescaled,threshold_array,subregion_medium_setting[0],subregion_medium_setting[1])
         sitk.WriteImage(subregion_im,join(subregion_dir,case))
-        
+"""        
 #create dataset.json file
 for d in [psma_folder,fdg_folder]:
     n_images=len(os.listdir(join(d,'labelsTr')))
@@ -93,4 +97,3 @@ for d in [psma_folder,fdg_folder]:
 #run nnUNet dataset plan and preprocess
 os.system('nnUNetv2_plan_and_preprocess -d 801 -c 3d_fullres --verify_dataset_integrity')
 os.system('nnUNetv2_plan_and_preprocess -d 802 -c 3d_fullres --verify_dataset_integrity')
-
